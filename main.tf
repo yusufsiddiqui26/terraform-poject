@@ -3,44 +3,46 @@ provider "aws" {
     profile = "admin"
 }
 
-variable "subnet1_cidr_block" {
-    description = "define cidr block for subnet1 ex 10.0.10.0 24"
-  
-}
-resource "aws_vpc" "development-vpc" {
-    cidr_block = "10.0.0.0/16"
+variable vpc_cidr_block {}
+variable subnet_cidr_block {}
+variable avail_zone {}
+variable env_prefix {}
+
+resource "aws_vpc" "myapp-vpc" {
+    cidr_block = var.vpc_cidr_block
     tags = {
-        Name: "development"
-        Prod: "None"
+      Name = "${var.env_prefix}-vpc"
     }
 }
 
-resource "aws_subnet" "dev-subnet-1" {
-    vpc_id = aws_vpc.development-vpc.id
-    cidr_block = var.subnet1_cidr_block
-    availability_zone = "ap-northeast-1a"
+resource "aws_subnet" "myapp-subnet-1" {
+    vpc_id = aws_vpc.myapp-vpc.id
+    cidr_block = var.subnet_cidr_block
+    availability_zone = var.avail_zone
     tags = {
-        Name: "sub-1-dev"
+      Name = "${var.env_prefix}-subnet-1"
     }
 }
 
-data "aws_vpc" "existing_vpc" {
-    default = true
-}
-
-resource "aws_subnet" "dev-subnet-2" {
-    vpc_id = data.aws_vpc.existing_vpc.id
-    cidr_block = "172.31.48.0/20"
-    availability_zone = "ap-northeast-1a"
+resource "aws_route_table" "myapp-route-table" {
+    vpc_id = aws_vpc.myapp-vpc.id
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = aws_internet_gateway.myapp-igw.id
+    }
     tags = {
-        Name: "sub-2-default"
+      Name = "${var.env_prefix}-route-tbl"
     }
 }
 
-output "dev-vpc-id" {
-  value = aws_vpc.development-vpc.id
+resource "aws_internet_gateway" "myapp-igw" {
+    vpc_id = aws_vpc.myapp-vpc.id
+    tags = {
+      Name = "${var.env_prefix}-igw"
+    }
 }
 
-output "dev-subnet1-id" {
-    value = aws_subnet.dev-subnet-1.id 
+resource "aws_route_table_association" "ass-rtb-subnet" {
+    subnet_id = aws_subnet.myapp-subnet-1.id
+    route_table_id = aws_route_table.myapp-route-table.id 
 }
