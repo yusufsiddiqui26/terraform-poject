@@ -1,3 +1,11 @@
+terraform {
+  required_version = ">= 0.12"
+  backend "s3" {
+    bucket = "myapp-bucket-yss"
+    key = "myapp/state.tfstate"
+    region = "ap-northeast-1"
+  }
+}
 
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
