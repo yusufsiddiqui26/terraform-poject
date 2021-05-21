@@ -1,0 +1,9 @@
+variable image_name {}
+variable vpc_id {}
+variable my_ip {}
+variable env_prefix {}
+variable public_kay_location {}
+variable instance_type {}
+variable subnet_id {}
+variable docker_script {}
+variable avail_zone {}
